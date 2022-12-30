@@ -16,10 +16,7 @@ const route = api
     validator('json', (value, c) => {
       const result = schema.safeParse(value)
       if (!result.success) {
-        return c.json({
-          success: false,
-          message: 'Invalid!',
-        })
+        return c.text('Invalid!', 400)
       }
       return result.data
     }),
