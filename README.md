@@ -14,12 +14,10 @@ import type { AppType } from './server'
 
 const client = new Client<AppType>('http://localhost:8787/api')
 
-const res = await client.post('/posts', {
-  json: {
-    id: 123,
-    title: 'Hello Hono!',
-    published: true,
-  },
+const res = await client.post('/posts').json({
+  id: 123,
+  title: 'Hello Hono!',
+  published: true,
 })
 
 const data = await res.json()
@@ -28,7 +26,7 @@ console.log(`${data.message}`)
 
 ## Features
 
-- Small ~1KB
+- Small 1.2kb
 - TypeSafe
 - Compatible with Fetch API
 - Optimized for Hono v3.x

@@ -1,4 +1,4 @@
-type ValidationTypes = {
+export type ValidationTypes = {
   json: object
   form: Record<string, string>
   query: Record<string, string>

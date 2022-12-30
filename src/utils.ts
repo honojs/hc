@@ -13,3 +13,10 @@ export const mergePath = (base: string, path: string) => {
   }
   return base + path
 }
+
+export const createBaseURLString = (base: string) => {
+  if (!/^https?:\/\/.+/.test(base)) {
+    return mergePath('http://localhost', base)
+  }
+  return base
+}

@@ -38,14 +38,14 @@ describe('Basic', () => {
     })
 
   const client = new Client<AppType>('http://localhost/api')
+  const req = client.get('/hello')
 
   it('Should return 200 response', async () => {
-    const res = await client.get('/hello', {
-      json: {
-        name: 'young man',
-        age: 20,
-      },
+    const res = await req.json({
+      name: 'young man',
+      age: 20,
     })
+
     expect(res.status).toBe(200)
     const data = await res.json()
     expect(data.success).toBe(true)
