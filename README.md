@@ -1,5 +1,84 @@
 # Hono Client
 
+Hono Client is HTTP Client based on Fetch API which you can access to Hono applications ultra-easily.
+
+```ts
+import { Client } from '@hono/client'
+import type { AppType } from './server'
+
+const client = new Client<AppType>('http://localhost:8787/api')
+
+const res = await client.post('/posts', {
+  json: {
+    id: 123,
+    title: 'Hello Hono!',
+    published: true,
+  },
+})
+
+const data = await res.json()
+console.log(`${data.message}`)
+```
+
+## Features
+
+- Small ~1KB
+- TypeSafe
+- Compatible with Fetch API
+- Optimized for Hono v3.x
+
+## Install
+
+```
+npm i @hono/client
+```
+
+Or
+
+```
+yarn add @hono/client
+```
+
+## Examples
+
+Server-side with [Zod](https://zod.dev).
+
+```ts
+import { Hono } from 'hono'
+import { validator } from 'hono/validator'
+import { z } from 'zod'
+
+const api = new Hono()
+
+const schema = z.object({
+  id: z.number(),
+  title: z.string(),
+  published: z.boolean(),
+})
+
+const route = api
+  .post(
+    '/posts',
+    validator('json', (value, c) => {
+      const result = schema.safeParse(value)
+      if (!result.success) {
+        return c.text('Invalid!', 400)
+      }
+      return result.data
+    }),
+    (c) => {
+      const { title, published } = c.req.valid()
+      return c.jsonT({
+        success: true,
+        message: `"${title}" is ${published ? 'published' : 'not published'}`,
+      })
+    }
+  )
+  .build()
+
+export type AppType = typeof route
+```
+
 ## Author
 
 Yusuke Wada <https://github.com/yusukebe>
