@@ -2,7 +2,7 @@
   "version": "0.0.0",
   "scripts": {
     "server": "wrangler dev src/server.ts",
-    "client": "tsx src/client.mts"
+    "client": "tsx --no-warnings=ExperimentalWarning src/client.mts"
   },
   "dependencies": {
     "@hono/client": "^0.0.1",
