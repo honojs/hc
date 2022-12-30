@@ -4,10 +4,11 @@ import { z } from 'zod'
 
 const api = new Hono()
 
+// Server
+
 const schema = z.object({
   id: z.number(),
   title: z.string(),
-  published: z.boolean(),
 })
 
 const route = api
@@ -28,6 +29,7 @@ const route = api
     }),
     (c) => {
       const data = c.req.valid()
+
       return c.jsonT({
         success: true,
         message: 'Valid!',

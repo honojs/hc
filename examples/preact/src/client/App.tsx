@@ -3,6 +3,8 @@ import { useState, useEffect } from 'preact/hooks'
 import { Client } from '../../../../src/client'
 import type { AppType } from '../api'
 
+// Client
+
 const App = () => {
   const client = new Client<AppType>('http://localhost:8787/api')
 
@@ -15,8 +17,7 @@ const App = () => {
     const fetchData = async () => {
       const res = await req.json({
         id: 123,
-        title: 'Hello Hono!!',
-        published: true,
+        title: 'Hello Hono!',
       })
       const data = await res.json()
       setData(data)
@@ -25,9 +26,8 @@ const App = () => {
   }, [])
   return (
     <div>
-      <h2>Message from API</h2>
-      <p>{data.message}</p>
-      <h3>{`${data.post?.title} is ${data.post?.published ? 'published!' : 'not published!'}`}</h3>
+      <p>Message from API</p>
+      {data.success ? <h3>{data.post.title}</h3> : <h3>Invalid!</h3>}
     </div>
   )
 }

@@ -31,6 +31,10 @@ console.log(`${data.message}`)
 - Compatible with Fetch API
 - Optimized for Hono v3.x
 
+## Demo
+
+![Demo](https://user-images.githubusercontent.com/10682/210117450-7ec4652f-ef7d-41a8-887c-427e33ab1963.gif)
+
 ## Install
 
 ```
