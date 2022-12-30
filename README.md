@@ -1,6 +1,12 @@
 # Hono Client
 
-Hono Client is HTTP Client based on Fetch API which you can access to Hono applications ultra-easily.
+[![Version](https://img.shields.io/npm/v/@hono/client.svg)](https://npmjs.com/package/@hono/client)
+[![Bundle Size](https://img.shields.io/bundlephobia/min/@hono/client)](https://bundlephobia.com/result?p=@hono/client)
+[![Bundle Size](https://img.shields.io/bundlephobia/minzip/@hono/client)](https://bundlephobia.com/result?p=@hono/client)
+
+Hono Client is HTTP Client based on Fetch API.
+It's Type-Safe.
+You can access to the Hono application ultra-easily.
 
 ```ts
 import { Client } from '@hono/client'
