@@ -26,7 +26,7 @@ console.log(`${data.message}`)
 
 ## Features
 
-- Small 1.2kb
+- Small about 1kb
 - TypeSafe
 - Compatible with Fetch API
 - Optimized for Hono v3.x
