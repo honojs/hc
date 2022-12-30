@@ -8,7 +8,7 @@ import type {
   ClientResponse,
   ValidationTypes,
 } from './types'
-import { mergePath, createBaseURLString } from './utils'
+import { mergePath } from './utils'
 
 const METHODS = ['get', 'post', 'put', 'delete'] as const
 
@@ -114,7 +114,7 @@ export class Client<T extends Schema> extends defineDynamicClass()<T> {
 
   constructor(baseURL: string) {
     super()
-    this.baseURL = createBaseURLString(baseURL)
+    this.baseURL = baseURL
     ;[...METHODS].map((method) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
