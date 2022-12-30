@@ -1,6 +1,6 @@
 {
   "name": "@hono/client",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "HTTP Client for Hono",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
