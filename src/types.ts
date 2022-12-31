@@ -16,11 +16,11 @@ export type Body = { [K in keyof ValidationTypes]?: ValidationTypes[K] }
 type Route = { [Path: string]: { input?: Body; output?: { json?: object } } }
 export type Schema = { [Method: string]: Route }
 
-export type InferPath<T extends Schema, M extends string> = T extends { [K in M]: infer R }
+export type InferPath<S extends Schema, M extends string> = S extends { [K in M]: infer R }
   ? keyof R
   : string
 
-export type InferBody<T extends Schema, M extends string, P extends string> = T extends {
+export type InferBody<S extends Schema, M extends string, P extends string> = S extends {
   [K in M]: infer R
 }
   ? R extends Route
@@ -28,7 +28,7 @@ export type InferBody<T extends Schema, M extends string, P extends string> = T 
     : unknown
   : Body
 
-export type InferReturnType<T extends Schema, M extends string, P extends string> = T extends {
+export type InferReturnType<S extends Schema, M extends string, P extends string> = S extends {
   [K in M]: infer R
 }
   ? R extends Route

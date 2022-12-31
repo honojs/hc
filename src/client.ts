@@ -12,7 +12,7 @@ import { mergePath } from './utils'
 
 const METHODS = ['get', 'post', 'put', 'delete'] as const
 
-class ClientRequest<T extends Schema, M extends string, P extends string> {
+class ClientRequest<S extends Schema, M extends string, P extends string> {
   private url: URL
   private method: string
   private requestBody: BodyInit
@@ -23,7 +23,7 @@ class ClientRequest<T extends Schema, M extends string, P extends string> {
     this.requestBody = {} as BodyInit
   }
 
-  query<B extends InferBody<T, M, P>>(
+  query<B extends InferBody<S, M, P>>(
     body: B extends Body ? B['query'] : ValidationTypes['query']
   ) {
     for (const [k, v] of Object.entries(body!)) {
@@ -32,7 +32,7 @@ class ClientRequest<T extends Schema, M extends string, P extends string> {
     return this.send()
   }
 
-  queries<B extends InferBody<T, M, P>>(
+  queries<B extends InferBody<S, M, P>>(
     body: B extends Body ? B['queries'] : ValidationTypes['queries']
   ) {
     for (const [k, v] of Object.entries(body!)) {
@@ -43,12 +43,12 @@ class ClientRequest<T extends Schema, M extends string, P extends string> {
     return this.send()
   }
 
-  json<B extends InferBody<T, M, P>>(body: B extends Body ? B['json'] : ValidationTypes['json']) {
+  json<B extends InferBody<S, M, P>>(body: B extends Body ? B['json'] : ValidationTypes['json']) {
     this.requestBody = JSON.stringify(body)
     return this.send()
   }
 
-  form<B extends InferBody<T, M, P>>(body: B extends Body ? B['form'] : ValidationTypes['form']) {
+  form<B extends InferBody<S, M, P>>(body: B extends Body ? B['form'] : ValidationTypes['form']) {
     const form = new FormData()
     for (const [k, v] of Object.entries(body!)) {
       form.append(k, v)
@@ -57,15 +57,15 @@ class ClientRequest<T extends Schema, M extends string, P extends string> {
     return this.send()
   }
 
-  send(callback?: Callback): Promise<ClientResponse<InferReturnType<T, M, P>>>
-  send<B extends InferBody<T, M, P>>(
+  send(callback?: Callback): Promise<ClientResponse<InferReturnType<S, M, P>>>
+  send<B extends InferBody<S, M, P>>(
     body?: B,
     callback?: Callback
-  ): Promise<ClientResponse<InferReturnType<T, M, P>>>
-  send<B extends InferBody<T, M, P>>(
+  ): Promise<ClientResponse<InferReturnType<S, M, P>>>
+  send<B extends InferBody<S, M, P>>(
     body?: B,
     callback?: Callback
-  ): Promise<ClientResponse<InferReturnType<T, M, P>>> {
+  ): Promise<ClientResponse<InferReturnType<S, M, P>>> {
     if (body?.query) {
       this.query(body.query as any)
     }
@@ -93,23 +93,23 @@ class ClientRequest<T extends Schema, M extends string, P extends string> {
     return fetch(request)
   }
 
-  get responseType(): InferReturnType<T, M, P> {
-    return {} as InferReturnType<T, M, P>
+  get responseType(): InferReturnType<S, M, P> {
+    return {} as InferReturnType<S, M, P>
   }
 }
 
 function defineDynamicClass(): {
-  new <T extends Schema>(): {
-    [M in typeof METHODS[number]]: <P extends InferPath<T, M>>(
+  new <S extends Schema>(): {
+    [M in typeof METHODS[number]]: <P extends InferPath<S, M>>(
       path: P,
       realPath?: string
-    ) => ClientRequest<T, M, P>
+    ) => ClientRequest<S, M, P>
   }
 } {
   return class {} as never
 }
 
-export class Client<T extends Schema> extends defineDynamicClass()<T> {
+export class Client<S extends Schema> extends defineDynamicClass()<S> {
   private baseURL: string
 
   constructor(baseURL: string) {
@@ -125,7 +125,7 @@ export class Client<T extends Schema> extends defineDynamicClass()<T> {
   on<M extends string, P extends string>(method: M, path: P, realPath?: string) {
     const urlString = mergePath(this.baseURL, realPath ?? path)
     const url = new URL(urlString)
-    const clientRequest = new ClientRequest<T, M, P>(url, method)
+    const clientRequest = new ClientRequest<S, M, P>(url, method)
     return clientRequest
   }
 }
