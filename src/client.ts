@@ -155,7 +155,6 @@ export class Client<S extends Schema> extends defineDynamicClass()<S> {
   on<M extends string, P extends string>(method: M, path: P, realPath?: string) {
     const urlString = mergePath(this.baseURL, realPath ?? path)
     const url = new URL(urlString)
-    const clientRequest = new ClientRequest<S, M, P>(url, method)
-    return clientRequest
+    return new ClientRequest<S, M, P>(url, method)
   }
 }
