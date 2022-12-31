@@ -1,8 +1,8 @@
 export type ValidationTypes = {
   json: object
-  form: Record<string, string>
-  query: Record<string, string>
-  queries: Record<string, string[]>
+  form: Record<string, any>
+  query: Record<string, any>
+  queries: Record<string, any[]>
 }
 
 export interface ClientResponse<T> extends Response {
@@ -24,9 +24,16 @@ export type InferBody<S extends Schema, M extends string, P extends string> = S 
   [K in M]: infer R
 }
   ? R extends Route
-    ? R[P]['input']
-    : unknown
+    ? R[P]['input'] extends undefined
+      ? never
+      : R[P]['input']
+    : never
   : Body
+
+export type InferBodyPart<
+  B extends Body,
+  T extends keyof ValidationTypes
+> = B[T] extends ValidationTypes[T] ? B[T] : never
 
 export type InferReturnType<S extends Schema, M extends string, P extends string> = S extends {
   [K in M]: infer R

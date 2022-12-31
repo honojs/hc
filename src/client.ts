@@ -1,12 +1,12 @@
 import type {
   InferBody,
+  InferBodyPart,
   InferPath,
   Schema,
   Body,
   Callback,
   InferReturnType,
   ClientResponse,
-  ValidationTypes,
 } from './types'
 import { mergePath } from './utils'
 
@@ -16,6 +16,7 @@ class ClientRequest<S extends Schema, M extends string, P extends string> {
   private url: URL
   private method: string
   private requestBody: BodyInit
+  private contentType: string | undefined = undefined
 
   constructor(url: URL, method: M) {
     this.url = url
@@ -23,37 +24,44 @@ class ClientRequest<S extends Schema, M extends string, P extends string> {
     this.requestBody = {} as BodyInit
   }
 
-  query<B extends InferBody<S, M, P>>(
-    body: B extends Body ? B['query'] : ValidationTypes['query']
-  ) {
-    for (const [k, v] of Object.entries(body!)) {
-      this.url.searchParams.set(k, v)
-    }
-    return this.send()
-  }
-
-  queries<B extends InferBody<S, M, P>>(
-    body: B extends Body ? B['queries'] : ValidationTypes['queries']
-  ) {
-    for (const [k, v] of Object.entries(body!)) {
-      for (const v2 of v) {
-        this.url.searchParams.append(k, v2)
+  query<B extends InferBody<S, M, P>>(body?: B extends Body ? InferBodyPart<B, 'query'> : never) {
+    if (body) {
+      for (const [k, v] of Object.entries(body)) {
+        this.url.searchParams.set(k, v)
       }
     }
     return this.send()
   }
 
-  json<B extends InferBody<S, M, P>>(body: B extends Body ? B['json'] : ValidationTypes['json']) {
-    this.requestBody = JSON.stringify(body)
+  queries<B extends InferBody<S, M, P>>(
+    body?: B extends Body ? InferBodyPart<B, 'queries'> : never
+  ) {
+    if (body) {
+      for (const [k, v] of Object.entries(body)) {
+        for (const v2 of v) {
+          this.url.searchParams.append(k, v2)
+        }
+      }
+    }
     return this.send()
   }
 
-  form<B extends InferBody<S, M, P>>(body: B extends Body ? B['form'] : ValidationTypes['form']) {
-    const form = new FormData()
-    for (const [k, v] of Object.entries(body!)) {
-      form.append(k, v)
+  json<B extends InferBody<S, M, P>>(body?: B extends Body ? InferBodyPart<B, 'json'> : never) {
+    if (body) {
+      this.requestBody = JSON.stringify(body)
     }
-    this.requestBody = form
+    this.contentType = 'application/json'
+    return this.send()
+  }
+
+  form<B extends InferBody<S, M, P>>(body?: B extends Body ? InferBodyPart<B, 'form'> : never) {
+    if (body) {
+      const form = new FormData()
+      for (const [k, v] of Object.entries(body)) {
+        form.append(k, v)
+      }
+      this.requestBody = form
+    }
     return this.send()
   }
 
@@ -84,9 +92,12 @@ class ClientRequest<S extends Schema, M extends string, P extends string> {
     const methodUpperCase = this.method.toUpperCase()
     const setBody = !(methodUpperCase === 'GET' || methodUpperCase === 'HEAD')
 
+    const headers = this.contentType ? { 'Content-Type': this.contentType } : undefined
+
     let request = new Request(this.url, {
       body: setBody ? this.requestBody : undefined,
       method: methodUpperCase,
+      headers: headers ?? undefined,
     })
     request = callback ? callback(request) ?? request : request
 
