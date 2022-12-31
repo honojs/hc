@@ -14,14 +14,14 @@ const METHODS = ['get', 'post', 'put', 'delete'] as const
 class ClientRequest<S extends Schema, M extends string, P extends string> {
   private url: URL
   private method: string
-  private requestBody: BodyInit
-  private contentType: string | undefined = undefined
-  private callback: Callback | undefined = undefined
+  private rBody: BodyInit
+  private cType: string | undefined = undefined
+  private cb: Callback | undefined = undefined
 
   constructor(url: URL, method: M) {
     this.url = url
     this.method = method
-    this.requestBody = {} as BodyInit
+    this.rBody = {} as BodyInit
   }
 
   query<B extends InferBody<S, M, P>>(body?: InferBodyPart<B, 'query'>, callback?: Callback) {
@@ -30,8 +30,8 @@ class ClientRequest<S extends Schema, M extends string, P extends string> {
         this.url.searchParams.set(k, v)
       }
     }
-    this.callback ??= callback
-    return this.finalize()
+    this.cb ??= callback
+    return this.do()
   }
 
   queries<B extends InferBody<S, M, P>>(body?: InferBodyPart<B, 'queries'>, callback?: Callback) {
@@ -42,17 +42,17 @@ class ClientRequest<S extends Schema, M extends string, P extends string> {
         }
       }
     }
-    this.callback ??= callback
-    return this.finalize()
+    this.cb ??= callback
+    return this.do()
   }
 
   json<B extends InferBody<S, M, P>>(body?: InferBodyPart<B, 'json'>, callback?: Callback) {
     if (body) {
-      this.requestBody = JSON.stringify(body)
+      this.rBody = JSON.stringify(body)
     }
-    this.contentType = 'application/json'
-    this.callback ??= callback
-    return this.finalize()
+    this.cType = 'application/json'
+    this.cb ??= callback
+    return this.do()
   }
 
   form<B extends InferBody<S, M, P>>(body?: InferBodyPart<B, 'form'>, callback?: Callback) {
@@ -61,10 +61,10 @@ class ClientRequest<S extends Schema, M extends string, P extends string> {
       for (const [k, v] of Object.entries(body)) {
         form.append(k, v)
       }
-      this.requestBody = form
+      this.rBody = form
     }
-    this.callback ??= callback
-    return this.finalize()
+    this.cb ??= callback
+    return this.do()
   }
 
   send<B extends InferBody<S, M, P>>(
@@ -76,10 +76,10 @@ class ClientRequest<S extends Schema, M extends string, P extends string> {
     let body: B | undefined = undefined
 
     if (typeof arg1 === 'function') {
-      this.callback ??= arg1
+      this.cb ??= arg1
     } else {
       body = arg1
-      this.callback ??= arg2
+      this.cb ??= arg2
     }
 
     if (body?.query) {
@@ -98,23 +98,23 @@ class ClientRequest<S extends Schema, M extends string, P extends string> {
       this.json(body.json as any)
     }
 
-    return this.finalize()
+    return this.do()
   }
 
-  private finalize(): Promise<ClientResponse<InferReturnType<S, M, P>>> {
+  private do(): Promise<ClientResponse<InferReturnType<S, M, P>>> {
     const methodUpperCase = this.method.toUpperCase()
     const setBody = !(methodUpperCase === 'GET' || methodUpperCase === 'HEAD')
 
-    const headers = this.contentType ? { 'Content-Type': this.contentType } : undefined
+    const headers = this.cType ? { 'Content-Type': this.cType } : undefined
 
     let request = new Request(this.url, {
-      body: setBody ? this.requestBody : undefined,
+      body: setBody ? this.rBody : undefined,
       method: methodUpperCase,
       headers: headers ?? undefined,
     })
 
-    if (this.callback) {
-      const callbackRequest = this.callback(request)
+    if (this.cb) {
+      const callbackRequest = this.cb(request)
       if (callbackRequest instanceof Request) {
         request = callbackRequest
       }
