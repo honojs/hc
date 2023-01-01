@@ -30,7 +30,6 @@ class ClientRequestImpl<P extends string> {
   private method: string
   private rBody: BodyInit
   private cType: string | undefined = undefined
-  private cb: Callback<P> | undefined = undefined
 
   constructor(url: URL, method: string) {
     this.url = url
@@ -44,8 +43,7 @@ class ClientRequestImpl<P extends string> {
         this.url.searchParams.set(k, v)
       }
     }
-    this.cb ??= callback
-    return this.do()
+    return this.send(callback)
   }
 
   queries(body?: ValidationTypes['queries'], callback?: Callback<P>) {
@@ -56,8 +54,7 @@ class ClientRequestImpl<P extends string> {
         }
       }
     }
-    this.cb ??= callback
-    return this.do()
+    return this.send(callback)
   }
 
   json(body?: ValidationTypes['json'], callback?: Callback<P>) {
@@ -65,8 +62,7 @@ class ClientRequestImpl<P extends string> {
       this.rBody = JSON.stringify(body)
     }
     this.cType = 'application/json'
-    this.cb ??= callback
-    return this.do()
+    return this.send(callback)
   }
 
   form(body?: ValidationTypes['form'], callback?: Callback<P>) {
@@ -77,11 +73,10 @@ class ClientRequestImpl<P extends string> {
       }
       this.rBody = form
     }
-    this.cb ??= callback
-    return this.do()
+    return this.send(callback)
   }
 
-  private do(): Promise<ClientResponse<{}>> {
+  send(callback?: Callback<P>): Promise<ClientResponse<{}>> {
     let methodUpperCase = this.method.toUpperCase()
     let setBody = !(methodUpperCase === 'GET' || methodUpperCase === 'HEAD')
     const headerValues = this.cType ? { 'Content-Type': this.cType } : undefined
@@ -89,9 +84,9 @@ class ClientRequestImpl<P extends string> {
     const headers = new Headers(headerValues ?? undefined)
     let requestUrl = this.url.toString()
 
-    if (this.cb) {
+    if (callback) {
       const option = new Option<P>({ headers: headers })
-      this.cb(option)
+      callback(option)
       requestUrl = replaceUrlParam(requestUrl, option.params)
     }
 
@@ -120,6 +115,7 @@ type ClientRequest<S extends Schema, M extends string, P extends string> = {
     : never
 } & {
   responseType: InferReturnType<S, M, P>
+  send: (callback?: Callback<P>) => Promise<ClientResponse<InferReturnType<S, M, P>>>
 }
 
 class ClientImpl {
@@ -142,6 +138,7 @@ export const hc = <T extends Schema>(baseUrl: string) => {
   return new Proxy(new ClientImpl(), {
     get(target, prop) {
       if (prop !== 'on') {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const on = target['on'] as any
         return on(baseUrl, prop)
       }
