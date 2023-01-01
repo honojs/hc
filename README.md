@@ -1,4 +1,4 @@
-# hc - Type-Safe HTTP Client for Hono
+# hc - TypeSafe HTTP Client for Hono
 
 [![Version](https://img.shields.io/npm/v/@hono/hc.svg)](https://npmjs.com/package/@hono/hc)
 [![Bundle Size](https://img.shields.io/bundlephobia/min/@hono/hc)](https://bundlephobia.com/result?p=@hono/hc)
