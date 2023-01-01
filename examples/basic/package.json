@@ -5,7 +5,7 @@
     "client": "tsx --no-warnings=ExperimentalWarning src/client.mts"
   },
   "dependencies": {
-    "hono": "3.0.0-rc.2",
+    "hono": "3.0.0-rc.3",
     "zod": "^3.20.2"
   },
   "devDependencies": {
