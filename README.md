@@ -1,15 +1,15 @@
 # hc - Type-Safe HTTP Client for Hono
 
-[![Version](https://img.shields.io/npm/v/@hono/client.svg)](https://npmjs.com/package/@hono/client)
-[![Bundle Size](https://img.shields.io/bundlephobia/min/@hono/client)](https://bundlephobia.com/result?p=@hono/client)
-[![Bundle Size](https://img.shields.io/bundlephobia/minzip/@hono/client)](https://bundlephobia.com/result?p=@hono/client)
+[![Version](https://img.shields.io/npm/v/@hono/hc.svg)](https://npmjs.com/package/@hono/hc)
+[![Bundle Size](https://img.shields.io/bundlephobia/min/@hono/hc)](https://bundlephobia.com/result?p=@hono/hc)
+[![Bundle Size](https://img.shields.io/bundlephobia/minzip/@hono/hc)](https://bundlephobia.com/result?p=@hono/hc)
 
 hc is HTTP Client based on Fetch API.
 It's Type-Safe. It's for Hono.
 You can access to the Hono application safety and ultra-easily.
 
 ```ts
-import { hc } from '@hono/client'
+import { hc } from '@hono/hc'
 import type { AppType } from './server'
 
 const client = hc<AppType>('http://localhost:8787/api')
@@ -38,13 +38,13 @@ console.log(`${data.message}`)
 ## Install
 
 ```
-npm i @hono/client
+npm i @hono/hc
 ```
 
 Or
 
 ```
-yarn add @hono/client
+yarn add @hono/hc
 ```
 
 ## Examples
