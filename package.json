@@ -1,6 +1,6 @@
 {
   "name": "@hono/hc",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "TypeSafe HTTP Client for Hono",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
