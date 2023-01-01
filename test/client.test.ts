@@ -12,13 +12,46 @@ global.Request = Request
 // @ts-ignore
 global.FormData = FormData
 
-import { Client } from '../src/index'
+import { hc } from '../src/index'
 import type { Equal, Expect } from '../src/utils'
+
+type post = {
+  post: {
+    '/posts': {
+      input: {
+        query: {
+          page: string
+        }
+      } & {
+        json: {
+          id?: number
+          title?: string
+        }
+      }
+      output: {
+        json: {
+          success: boolean
+          message: string
+          post: {
+            page: string
+          } & {
+            id?: number
+            title?: string
+          }
+        }
+      }
+    }
+  }
+}
 
 type AppType = {
   post: {
     '/hello': {
       input: {
+        query: {
+          page: string
+        }
+      } & {
         json: {
           name: string
           age: number
@@ -108,7 +141,7 @@ describe('Basic - json', () => {
   afterEach(() => server.resetHandlers())
   afterAll(() => server.close())
 
-  const client = new Client<AppType>('http://localhost/api')
+  const client = hc<AppType>('http://localhost/api')
 
   it('Should get 200 response', async () => {
     const req = client.post('/hello')
@@ -116,8 +149,8 @@ describe('Basic - json', () => {
       name: 'young man',
       age: 20,
     }
-    const res = await req.json(payload, (req) => {
-      req.headers.append('x-message', 'foobar')
+    const res = await req.json(payload, (opt) => {
+      opt.headers.append('x-message', 'foobar')
     })
 
     expect(res.status).toBe(200)
@@ -143,7 +176,10 @@ describe('Basic - json', () => {
   })
 
   it('Should get 404 response', async () => {
-    const res = await client.post('/hello', '/hello-not-found').send()
+    const res = await client.post('/hello', '/hello-not-found').json({
+      name: '',
+      age: 0,
+    })
     expect(res.status).toBe(404)
   })
 })
@@ -181,7 +217,7 @@ describe('Basic - query, send, queries, and form', () => {
   afterEach(() => server.resetHandlers())
   afterAll(() => server.close())
 
-  const client = new Client<AppType>('http://localhost/api')
+  const client = hc<AppType>('http://localhost/api')
 
   it('Should get 200 response - query', async () => {
     const req = client.get('/search')
@@ -197,9 +233,7 @@ describe('Basic - query, send, queries, and form', () => {
 
   it('Should get 200 response - send', async () => {
     const req = client.get('/search')
-    const res = await req.send({
-      query: { q: 'foobar' },
-    })
+    const res = await req.query({ q: 'foobar' })
 
     expect(res.status).toBe(200)
     expect(await res.json()).toEqual({
@@ -209,6 +243,7 @@ describe('Basic - query, send, queries, and form', () => {
 
   it('Should get 200 response - queries', async () => {
     const req = client.get('/posts')
+
     const res = await req.queries({
       tags: ['A', 'B', 'C'],
     })
@@ -220,8 +255,10 @@ describe('Basic - query, send, queries, and form', () => {
   })
 
   it('Should get 200 response - form', async () => {
-    const req = client.put('/posts/:id', '/posts/123')
-    const res = await req.form({ title: 'Good Night' })
+    const req = client.put('/posts/:id')
+    const res = await req.form({ title: 'Good Night' }, (opt) => {
+      opt.param('id', '123')
+    })
 
     expect(res.status).toBe(200)
     expect(await res.text()).toMatch('Good Night')

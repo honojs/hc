@@ -1,18 +1,18 @@
-# Hono Client
+# hc - Type-Safe HTTP Client for Hono
 
 [![Version](https://img.shields.io/npm/v/@hono/client.svg)](https://npmjs.com/package/@hono/client)
 [![Bundle Size](https://img.shields.io/bundlephobia/min/@hono/client)](https://bundlephobia.com/result?p=@hono/client)
 [![Bundle Size](https://img.shields.io/bundlephobia/minzip/@hono/client)](https://bundlephobia.com/result?p=@hono/client)
 
-Hono Client is HTTP Client based on Fetch API.
-It's Type-Safe.
-You can access to the Hono application ultra-easily.
+hc is HTTP Client based on Fetch API.
+It's Type-Safe. It's for Hono.
+You can access to the Hono application safety and ultra-easily.
 
 ```ts
-import { Client } from '@hono/client'
+import { hc } from '@hono/client'
 import type { AppType } from './server'
 
-const client = new Client<AppType>('http://localhost:8787/api')
+const client = hc<AppType>('http://localhost:8787/api')
 
 const res = await client.post('/posts').json({
   id: 123,

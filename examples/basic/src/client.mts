@@ -1,7 +1,7 @@
-import { Client } from '../../../src/client'
+import { hc } from '../../../src/client'
 import type { AppType } from './server'
 
-const client = new Client<AppType>('http://localhost:8787/api')
+const client = hc<AppType>('http://localhost:8787/api')
 
 const res = await client.post('/posts').json({
   id: 123,

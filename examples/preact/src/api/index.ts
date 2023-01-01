@@ -14,6 +14,13 @@ const schema = z.object({
 const route = api
   .post(
     '/posts',
+    validator('query', (value) => {
+      if (value) {
+        return {
+          page: value as string,
+        }
+      }
+    }),
     validator('json', (value, c) => {
       const result = schema.safeParse(value)
       if (!result.success) {
@@ -29,7 +36,6 @@ const route = api
     }),
     (c) => {
       const data = c.req.valid()
-
       return c.jsonT({
         success: true,
         message: 'Valid!',

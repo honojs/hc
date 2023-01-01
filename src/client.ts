@@ -3,28 +3,42 @@ import type {
   InferBodyPart,
   InferPath,
   Schema,
-  Callback,
   InferReturnType,
   ClientResponse,
+  ParamKeys,
+  ValidationTypes,
 } from './types'
-import { mergePath } from './utils'
+import { mergePath, replaceUrlParam } from './utils'
 
-const METHODS = ['get', 'post', 'put', 'delete'] as const
+class Option<P extends string> {
+  readonly headers: Headers
+  readonly params: Record<string, string> = {}
 
-class ClientRequest<S extends Schema, M extends string, P extends string> {
+  constructor({ headers = new Headers() }: { headers: Headers }) {
+    this.headers = headers
+  }
+
+  param(key: ParamKeys<P>, value: string) {
+    this.params[key] = value
+  }
+}
+
+type Callback<P extends string> = (option: Option<P>) => void | undefined
+
+class ClientRequestImpl<P extends string> {
   private url: URL
   private method: string
   private rBody: BodyInit
   private cType: string | undefined = undefined
-  private cb: Callback | undefined = undefined
+  private cb: Callback<P> | undefined = undefined
 
-  constructor(url: URL, method: M) {
+  constructor(url: URL, method: string) {
     this.url = url
     this.method = method
     this.rBody = {} as BodyInit
   }
 
-  query<B extends InferBody<S, M, P>>(body?: InferBodyPart<B, 'query'>, callback?: Callback) {
+  query(body?: ValidationTypes['query'], callback?: Callback<P>) {
     if (body) {
       for (const [k, v] of Object.entries(body)) {
         this.url.searchParams.set(k, v)
@@ -34,7 +48,7 @@ class ClientRequest<S extends Schema, M extends string, P extends string> {
     return this.do()
   }
 
-  queries<B extends InferBody<S, M, P>>(body?: InferBodyPart<B, 'queries'>, callback?: Callback) {
+  queries(body?: ValidationTypes['queries'], callback?: Callback<P>) {
     if (body) {
       for (const [k, v] of Object.entries(body)) {
         for (const v2 of v) {
@@ -46,7 +60,7 @@ class ClientRequest<S extends Schema, M extends string, P extends string> {
     return this.do()
   }
 
-  json<B extends InferBody<S, M, P>>(body?: InferBodyPart<B, 'json'>, callback?: Callback) {
+  json(body?: ValidationTypes['json'], callback?: Callback<P>) {
     if (body) {
       this.rBody = JSON.stringify(body)
     }
@@ -55,7 +69,7 @@ class ClientRequest<S extends Schema, M extends string, P extends string> {
     return this.do()
   }
 
-  form<B extends InferBody<S, M, P>>(body?: InferBodyPart<B, 'form'>, callback?: Callback) {
+  form(body?: ValidationTypes['form'], callback?: Callback<P>) {
     if (body) {
       const form = new FormData()
       for (const [k, v] of Object.entries(body)) {
@@ -67,94 +81,70 @@ class ClientRequest<S extends Schema, M extends string, P extends string> {
     return this.do()
   }
 
-  send<B extends InferBody<S, M, P>>(
-    body?: B,
-    callback?: Callback
-  ): Promise<ClientResponse<InferReturnType<S, M, P>>>
-  send(callback?: Callback): Promise<ClientResponse<InferReturnType<S, M, P>>>
-  send<B extends InferBody<S, M, P>>(arg1?: B, arg2?: Callback) {
-    let body: B | undefined = undefined
+  private do(): Promise<ClientResponse<{}>> {
+    let methodUpperCase = this.method.toUpperCase()
+    let setBody = !(methodUpperCase === 'GET' || methodUpperCase === 'HEAD')
+    const headerValues = this.cType ? { 'Content-Type': this.cType } : undefined
 
-    if (typeof arg1 === 'function') {
-      this.cb ??= arg1
-    } else {
-      body = arg1
-      this.cb ??= arg2
-    }
-
-    if (body?.query) {
-      this.query(body.query as any)
-    }
-
-    if (body?.queries) {
-      this.queries(body.queries as any)
-    }
-
-    if (body?.form) {
-      this.form(body.form as any)
-    }
-
-    if (body?.json) {
-      this.json(body.json as any)
-    }
-
-    return this.do()
-  }
-
-  private do(): Promise<ClientResponse<InferReturnType<S, M, P>>> {
-    const methodUpperCase = this.method.toUpperCase()
-    const setBody = !(methodUpperCase === 'GET' || methodUpperCase === 'HEAD')
-
-    const headers = this.cType ? { 'Content-Type': this.cType } : undefined
-
-    let request = new Request(this.url, {
-      body: setBody ? this.rBody : undefined,
-      method: methodUpperCase,
-      headers: headers ?? undefined,
-    })
+    const headers = new Headers(headerValues ?? undefined)
+    let requestUrl = this.url.toString()
 
     if (this.cb) {
-      const callbackRequest = this.cb(request)
-      if (callbackRequest instanceof Request) {
-        request = callbackRequest
-      }
+      const option = new Option<P>({ headers: headers })
+      this.cb(option)
+      requestUrl = replaceUrlParam(requestUrl, option.params)
     }
 
-    return fetch(request.url, request)
-  }
+    methodUpperCase = this.method.toUpperCase()
+    setBody = !(methodUpperCase === 'GET' || methodUpperCase === 'HEAD')
 
-  get responseType(): InferReturnType<S, M, P> {
-    return {} as InferReturnType<S, M, P>
-  }
-}
-
-function defineDynamicClass(): {
-  new <S extends Schema>(): {
-    [M in typeof METHODS[number]]: <P extends InferPath<S, M>>(
-      path: P,
-      realPath?: string
-    ) => ClientRequest<S, M, P>
-  }
-} {
-  return class {} as never
-}
-
-export class Client<S extends Schema> extends defineDynamicClass()<S> {
-  private baseURL: string
-
-  constructor(baseURL: string) {
-    super()
-    this.baseURL = baseURL
-    ;[...METHODS].map((method) => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      this[method] = (path: string, realPath: string) => this.on(method, path, realPath)
+    // Pass URL string to 1st arg for testing with MSW and node-fetch
+    return fetch(requestUrl, {
+      body: setBody ? this.rBody : undefined,
+      method: methodUpperCase,
+      headers: headers,
     })
   }
 
-  on<M extends string, P extends string>(method: M, path: P, realPath?: string) {
-    const urlString = mergePath(this.baseURL, realPath ?? path)
-    const url = new URL(urlString)
-    return new ClientRequest<S, M, P>(url, method)
+  get responseType() {
+    return {}
   }
+}
+
+type ClientRequest<S extends Schema, M extends string, P extends string> = {
+  [K in keyof InferBody<S, M, P>]: K extends keyof ValidationTypes
+    ? (
+        body: InferBodyPart<InferBody<S, M, P>, K>,
+        callback?: Callback<P>
+      ) => Promise<ClientResponse<InferReturnType<S, M, P>>>
+    : never
+} & {
+  responseType: InferReturnType<S, M, P>
+}
+
+class ClientImpl {
+  on<M extends string, P extends string>(baseUrl: string, method: M) {
+    return (path: P, realPath?: string) => {
+      const urlString = mergePath(baseUrl, realPath ?? path)
+      const url = new URL(urlString)
+      return new ClientRequestImpl<P>(url, method)
+    }
+  }
+}
+
+type Client<S extends Schema> = {} & {
+  [M in keyof S]: M extends string
+    ? <P extends InferPath<S, M>>(path: P, realPath?: string) => ClientRequest<S, M, P>
+    : never
+}
+
+export const hc = <T extends Schema>(baseUrl: string) => {
+  return new Proxy(new ClientImpl(), {
+    get(target, prop) {
+      if (prop !== 'on') {
+        const on = target['on'] as any
+        return on(baseUrl, prop)
+      }
+    },
+  }) as Client<T>
 }

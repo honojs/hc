@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 export type ValidationTypes = {
   json: object
   form: Record<string, any>
@@ -8,8 +9,6 @@ export type ValidationTypes = {
 export interface ClientResponse<T> extends Response {
   json(): Promise<T>
 }
-
-export type Callback = (req: Request) => Request | void
 
 export type Body = { [K in keyof ValidationTypes]?: ValidationTypes[K] }
 
@@ -44,3 +43,15 @@ export type InferReturnType<S extends Schema, M extends string, P extends string
       : undefined
     : unknown
   : never
+
+type ParamKeyName<NameWithPattern> = NameWithPattern extends `${infer Name}{${infer _Pattern}`
+  ? Name
+  : NameWithPattern
+
+type ParamKey<Component> = Component extends `:${infer NameWithPattern}`
+  ? ParamKeyName<NameWithPattern>
+  : never
+
+export type ParamKeys<Path> = Path extends `${infer Component}/${infer Rest}`
+  ? ParamKey<Component> | ParamKeys<Rest>
+  : ParamKey<Path>

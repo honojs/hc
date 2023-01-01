@@ -9,7 +9,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "hono": "3.0.0-rc.2",
+    "hono": "3.0.0-rc.3",
     "preact": "^10.11.3",
     "zod": "3.19.1"
   },
