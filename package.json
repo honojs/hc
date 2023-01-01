@@ -1,7 +1,7 @@
 {
-  "name": "@hono/client",
+  "name": "@hono/hc",
   "version": "0.0.3",
-  "description": "HTTP Client for Hono",
+  "description": "TypeSafe HTTP Client for Hono",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
@@ -22,7 +22,7 @@
   "private": false,
   "repository": {
     "type": "git",
-    "url": "https://github.com/honojs/client.git"
+    "url": "https://github.com/honojs/hc.git"
   },
   "homepage": "https://honojs.dev",
   "author": "Yusuke Wada <yusuke@kamawada.com> (https://github.com/yusukebe)",
