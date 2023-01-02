@@ -9,6 +9,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@hono/zod-validator": "^0.0.1",
     "hono": "3.0.0-rc.3",
     "preact": "^10.11.3",
     "zod": "3.19.1"
