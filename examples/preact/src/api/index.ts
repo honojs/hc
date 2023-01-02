@@ -1,5 +1,5 @@
+import { zValidator } from '@hono/zod-validator'
 import { Hono } from 'hono'
-import { validator } from 'hono/validator'
 import { z } from 'zod'
 
 const api = new Hono()
@@ -14,15 +14,7 @@ const schema = z.object({
 const route = api
   .post(
     '/posts',
-    validator('query', (value) => {
-      if (value) {
-        return {
-          page: value as string,
-        }
-      }
-    }),
-    validator('json', (value, c) => {
-      const result = schema.safeParse(value)
+    zValidator('json', schema, (result, c) => {
       if (!result.success) {
         return c.json(
           {
@@ -32,7 +24,6 @@ const route = api
           400
         )
       }
-      return result.data
     }),
     (c) => {
       const data = c.req.valid()
