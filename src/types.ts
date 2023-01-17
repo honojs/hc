@@ -12,7 +12,7 @@ export interface ClientResponse<T> extends Response {
 
 export type Body = { [K in keyof ValidationTypes]?: ValidationTypes[K] }
 
-type Route = { [Path: string]: { input?: Body; output?: { json?: object } } }
+type Route = { [Path: string]: { input?: Body | unknown; output?: { json: object } | unknown } }
 export type Schema = { [Method: string]: Route }
 
 export type InferPath<S extends Schema, M extends string> = S extends { [K in M]: infer R }
@@ -38,7 +38,7 @@ export type InferReturnType<S extends Schema, M extends string, P extends string
   [K in M]: infer R
 }
   ? R extends Route
-    ? R[P]['output'] extends object
+    ? R[P]['output'] extends { json: object }
       ? R[P]['output']['json']
       : undefined
     : unknown

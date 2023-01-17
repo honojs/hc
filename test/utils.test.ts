@@ -6,6 +6,7 @@ describe('mergePath', () => {
     expect(mergePath('http://localhost/', '/api')).toBe('http://localhost/api')
     expect(mergePath('http://localhost', 'api')).toBe('http://localhost/api')
     expect(mergePath('http://localhost/', 'api')).toBe('http://localhost/api')
+    expect(mergePath('http://localhost/', '/')).toBe('http://localhost/')
   })
 })
 

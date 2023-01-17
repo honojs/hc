@@ -5,12 +5,9 @@ export type Equal<X, Y> = (<T>() => T extends X ? 1 : 2) extends <T>() => T exte
 export type NotEqual<X, Y> = true extends Equal<X, Y> ? false : true
 
 export const mergePath = (base: string, path: string) => {
-  if (!/.+\/$/.test(base)) {
-    base = base + '/'
-  }
-  if (/^\/.+/.test(path)) {
-    path = path.slice(1)
-  }
+  base = base.replace(/\/+$/, '')
+  base = base + '/'
+  path = path.replace(/^\/+/, '')
   return base + path
 }
 
