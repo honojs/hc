@@ -26,12 +26,13 @@ class Option<P extends string> {
 type Callback<P extends string> = (option: Option<P>) => void | undefined
 
 class ClientRequestImpl<P extends string> {
-  private url: URL
+  private url: string
+  private params: URLSearchParams = new URLSearchParams()
   private method: string
   private rBody: BodyInit
   private cType: string | undefined = undefined
 
-  constructor(url: URL, method: string) {
+  constructor(url: string, method: string) {
     this.url = url
     this.method = method
     this.rBody = {} as BodyInit
@@ -40,7 +41,7 @@ class ClientRequestImpl<P extends string> {
   query(body?: ValidationTypes['query'], callback?: Callback<P>) {
     if (body) {
       for (const [k, v] of Object.entries(body)) {
-        this.url.searchParams.set(k, v)
+        this.params.set(k, v)
       }
     }
     return this.send(callback)
@@ -50,7 +51,7 @@ class ClientRequestImpl<P extends string> {
     if (body) {
       for (const [k, v] of Object.entries(body)) {
         for (const v2 of v) {
-          this.url.searchParams.append(k, v2)
+          this.params.append(k, v2)
         }
       }
     }
@@ -82,19 +83,20 @@ class ClientRequestImpl<P extends string> {
     const headerValues = this.cType ? { 'Content-Type': this.cType } : undefined
 
     const headers = new Headers(headerValues ?? undefined)
-    let requestUrl = this.url.toString()
+    let url = this.url
 
     if (callback) {
       const option = new Option<P>({ headers: headers })
       callback(option)
-      requestUrl = replaceUrlParam(requestUrl, option.params)
+      url = replaceUrlParam(url, option.params)
     }
 
+    url = url + '?' + this.params.toString()
     methodUpperCase = this.method.toUpperCase()
     setBody = !(methodUpperCase === 'GET' || methodUpperCase === 'HEAD')
 
     // Pass URL string to 1st arg for testing with MSW and node-fetch
-    return fetch(requestUrl, {
+    return fetch(url, {
       body: setBody ? this.rBody : undefined,
       method: methodUpperCase,
       headers: headers,
@@ -121,8 +123,7 @@ type ClientRequest<S extends Schema, M extends string, P extends string> = {
 class ClientImpl {
   on<M extends string, P extends string>(baseUrl: string, method: M) {
     return (path: P, realPath?: string) => {
-      const urlString = mergePath(baseUrl, realPath ?? path)
-      const url = new URL(urlString)
+      const url = mergePath(baseUrl, realPath ?? path)
       return new ClientRequestImpl<P>(url, method)
     }
   }
