@@ -1,4 +1,3 @@
-import { h } from 'preact'
 import { useState, useEffect } from 'preact/hooks'
 import { hc } from '../../../../src/client'
 import type { AppType } from '../api'
@@ -6,7 +5,7 @@ import type { AppType } from '../api'
 // Client
 
 const App = () => {
-  const client = hc<AppType>('http://localhost:8787/api')
+  const client = hc<AppType>('/api')
 
   const req = client.post('/posts')
   const type = req.responseType
